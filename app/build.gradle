@@ -34,5 +34,5 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 
     compile 'jp.co.cyberagent.android.gpuimage:gpuimage-library:1.4.1'
-    compile "org.jetbrains.anko:anko-commons:$anko_version"
+    compile "org.jetbrains.anko:anko:$anko_version"
 }

@@ -16,10 +16,16 @@ import co.blackfintech.instafilter.filters.Juno
 import co.blackfintech.instafilter.filters.Original
 import jp.co.cyberagent.android.gpuimage.GPUImage
 import kotlinx.android.synthetic.main.activity_photo_filter.*
-import org.jetbrains.anko.toast
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import android.Manifest
+import android.content.pm.PackageManager
+import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
+import android.media.MediaScannerConnection
+import android.net.Uri
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 class PhotoFilterActivity : AppCompatActivity() {
@@ -28,6 +34,7 @@ class PhotoFilterActivity : AppCompatActivity() {
   companion object {
 
     val REQUEST_CODE_PHOTO_PICK = 1
+    val MY_PERMISSION_WRITE_EXTERNAL_STORAGE = 1000
   }
 
   private val filters by lazy {
@@ -88,12 +95,35 @@ class PhotoFilterActivity : AppCompatActivity() {
   }
   // endregion
 
+  override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    when(requestCode){
+      MY_PERMISSION_WRITE_EXTERNAL_STORAGE ->{
+        if(grantResults.isNotEmpty() &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED) saveImage()
+      }
+    }
+  }
+
+  private fun checkPermission(){
+    if(ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+      if(ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)){
+
+      }else{
+        ActivityCompat.requestPermissions(this,
+                Array(1,{i->Manifest.permission.WRITE_EXTERNAL_STORAGE}),
+                MY_PERMISSION_WRITE_EXTERNAL_STORAGE)
+      }
+    }else{
+      saveImage()
+    }
+  }
+
   // region Salin-salin methods
   private fun bindViews() {
 
     saveButton.setOnClickListener {
 
-      saveImage()
+      checkPermission()
     }
   }
 
@@ -160,6 +190,14 @@ class PhotoFilterActivity : AppCompatActivity() {
       setResult(Activity.RESULT_OK)
       finish()
     }
+
+    MediaScannerConnection.scanFile(this, arrayOf(file.toString()), null,
+            object : MediaScannerConnection.OnScanCompletedListener {
+              override fun onScanCompleted(path: String, uri: Uri) {
+                Log.i("ExternalStorage", "Scanned $path:")
+                Log.i("ExternalStorage", "-> uri=" + uri)
+              }
+            })
   }
   // endregion
 }
